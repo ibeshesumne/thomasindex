@@ -1,32 +1,36 @@
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
-
-/**
- * The App component serves as the main entry point of the application.
- * It renders a simple UI with a logo, a paragraph, and a link to the React website.
- * The link opens in a new tab without affecting the current page.
- */
+import CreateData from './components/CreateData';
+import ReadData from './components/ReadData';
+import UpdateData from './components/UpdateData';
+import DeleteData from './components/DeleteData';
 
 function App() {
+  const [selectedRecord, setSelectedRecord] = useState(null);
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <h1>Letter Collection Index</h1>
       </header>
-      <div className="flex items-center justify-center h-screen bg-blue-500">
-        <h1 className="text-white text-4xl font-bold">Hello, Tailwind CSS!</h1>
-      </div>
+      <main>
+        <section>
+          <h2>Create Record</h2>
+          <CreateData onRecordCreated={setSelectedRecord} />
+        </section>
+        <section>
+          <h2>View Records</h2>
+          <ReadData selectedRecord={selectedRecord} setSelectedRecord={setSelectedRecord} />
+        </section>
+        <section>
+          <h2>Update Record</h2>
+          <UpdateData selectedRecord={selectedRecord} />
+        </section>
+        <section>
+          <h2>Delete Record</h2>
+          <DeleteData />
+        </section>
+      </main>
     </div>
   );
 }

@@ -1,13 +1,17 @@
+// tailwind.config.js
 module.exports = {
-  darkMode: 'class', // Ensure 'class' mode is set for dark mode
+  darkMode: 'class',
   content: [
-    "./src/**/*.{js,jsx,ts,tsx}", // Include all source files for purge
-    "./public/index.html", // Include the root HTML file
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./public/index.html",
   ],
   theme: {
     extend: {
       colors: {
-        // Google-like colors
+        zenGray: '#f5f5f5',
+        zenDark: '#333333',
+        zenDarkText: '#f0f0f0',
+        // Google colors and other colors if needed...
         'google-blue': '#4285F4',
         'google-gray': '#202124',
         'google-light-gray': '#F8F9FA',
@@ -21,18 +25,6 @@ module.exports = {
       fontFamily: {
         sans: ['Roboto', 'Arial', 'sans-serif'],
         serif: ['Lora', 'Serif'],
-      },
-      textColor: {
-        'google-dark-text': '#202124',
-        'google-light-text': '#E8EAED',
-      },
-      backgroundColor: {
-        'google-header': '#4285F4',
-        'google-footer': '#F2F2F2',
-        'google-footer-dark': '#202124',
-      },
-      borderColor: {
-        'google-border': '#DADCE0',
       },
     },
   },
