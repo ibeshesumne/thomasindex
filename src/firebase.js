@@ -8,7 +8,7 @@ import {
   limitToFirst,
 } from 'firebase/database'; // Import query functions
 import { getAnalytics } from 'firebase/analytics'; // Optional, for analytics
-import { getAuth } from 'firebase/auth'; // Optional, for authentication
+import { getAuth, setPersistence, browserSessionPersistence } from 'firebase/auth'; // For authentication
 
 // Firebase configuration
 const firebaseConfig = {
@@ -33,8 +33,17 @@ if (firebaseConfig.measurementId) {
   getAnalytics(app);
 }
 
-// Authentication instance (optional, if using Firebase Auth)
+// Authentication instance
 export const auth = getAuth(app);
+
+// Set session persistence
+setPersistence(auth, browserSessionPersistence)
+  .then(() => {
+    console.log('Session persistence set to browser session only');
+  })
+  .catch((error) => {
+    console.error('Error setting session persistence:', error);
+  });
 
 // Fetch all letters data
 export const fetchLettersData = async () => {

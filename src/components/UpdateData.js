@@ -1,10 +1,13 @@
-// UpdateData.js
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { ref, update } from 'firebase/database';
+import { useAuth } from './Auth/AuthContext';
 
 function UpdateData({ selectedRecord, onRecordUpdated }) {
   const [formData, setFormData] = useState({
+    id: '',
+    createdBy: '',
+    createdByEmail: '',
     datechecker: 0,
     date: '',
     object_type: '',
@@ -16,12 +19,14 @@ function UpdateData({ selectedRecord, onRecordUpdated }) {
     original_url: '',
     notes: '',
     index_creation_date: '',
-    index_modified_date: ''
+    index_modified_date: '',
   });
+
+  const { currentUser, emailVerified } = useAuth(); // Include email verification status
 
   useEffect(() => {
     if (selectedRecord) {
-      setFormData({ ...selectedRecord });
+      setFormData(selectedRecord);
     } else {
       clearForm();
     }
@@ -29,29 +34,52 @@ function UpdateData({ selectedRecord, onRecordUpdated }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const recordRef = ref(db, 'letters/' + formData.id);
-    const updatedRecord = { ...formData, index_modified_date: new Date().toISOString() };
-    update(recordRef, updatedRecord)
-      .then(() => {
-        alert('Record updated successfully!');
-        onRecordUpdated && onRecordUpdated(updatedRecord);
-        clearForm();
-      })
-      .catch((error) => {
-        alert('Error updating record: ' + error.message);
-      });
+
+    if (!currentUser) {
+      alert('You must be logged in to update a record.');
+      return;
+    }
+
+    if (!emailVerified) {
+      alert('You must verify your email before updating records.');
+      return;
+    }
+
+    if (!formData.id) {
+      alert('No record selected for update.');
+      return;
+    }
+
+    const recordRef = ref(db, `letters/${formData.id}`);
+    const updatedRecord = {
+      ...formData,
+      index_modified_date: new Date().toISOString(),
+    };
+
+    try {
+      await update(recordRef, updatedRecord);
+      alert('Record updated successfully!');
+      if (onRecordUpdated) onRecordUpdated(updatedRecord);
+      clearForm();
+    } catch (error) {
+      console.error('Error updating record:', error.message);
+      alert('Failed to update record. Please try again.');
+    }
   };
 
   const clearForm = () => {
     setFormData({
+      id: '',
+      createdBy: '',
+      createdByEmail: '',
       datechecker: 0,
       date: '',
       object_type: '',
@@ -63,7 +91,7 @@ function UpdateData({ selectedRecord, onRecordUpdated }) {
       original_url: '',
       notes: '',
       index_creation_date: '',
-      index_modified_date: ''
+      index_modified_date: '',
     });
   };
 
