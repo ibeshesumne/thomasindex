@@ -19,7 +19,6 @@ function App() {
     <AuthProvider> {/* Wrap the app with AuthProvider */}
       <BrowserRouter>
         <div className="App">
-          {/* Replace static header with the Header component */}
           <Header />
           <main>
             <Routes>

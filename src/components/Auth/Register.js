@@ -1,63 +1,72 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import { ref, set } from 'firebase/database';
+import { auth, db } from '../../firebase'; // Import Firebase authentication and database
+import { useNavigate } from 'react-router-dom'; // Import navigation hook
 
-const Register = () => {
+function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate(); // Initialize navigation hook
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+    setLoading(true);
+
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      setError('');
-      setSuccess('Account created successfully! You can now log in.');
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
-    } catch (err) {
-      setError(err.message);
+      // Create the user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid;
+
+      // Save user details in the Firebase Realtime Database with default userType 'regular'
+      await set(ref(db, `users/${userId}`), {
+        email,
+        userType: 'regular', // Default user type
+      });
+
+      // Send email verification
+      await sendEmailVerification(auth.currentUser);
+      alert(
+        'Registration successful! A verification email has been sent. Please verify your email before logging in.'
+      );
+
+      // Redirect to login page
+      navigate('/login');
+    } catch (error) {
+      console.error('Error during registration:', error);
+      alert('Registration failed: ' + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Register</h2>
-      <form onSubmit={handleRegister}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Register</button>
-      </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {success && <p style={{ color: 'green' }}>{success}</p>}
-    </div>
+    <form onSubmit={handleRegister}>
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
+      <button
+        type="submit"
+        disabled={loading}
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+      >
+        {loading ? 'Registering...' : 'Register'}
+      </button>
+    </form>
   );
-};
+}
 
 export default Register;

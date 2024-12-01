@@ -1,26 +1,25 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase'; // Adjust the path based on your project structure
+import { useAuth } from './Auth/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
-  const [user, setUser] = React.useState(null);
+  const { currentUser, emailVerified } = useAuth();
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
-    return () => unsubscribe();
+    setLoading(false); // Assume state stabilizes after mounting
   }, []);
 
   if (loading) {
     return <div>Loading...</div>; // Add a loading spinner or placeholder
   }
 
-  if (!user) {
+  if (!currentUser) {
     return <Navigate to="/login" />;
+  }
+
+  if (!emailVerified) {
+    return <Navigate to="/verify-email" />;
   }
 
   return children;

@@ -6,6 +6,9 @@ import { useAuth } from './Auth/AuthContext';
 
 function CreateData({ onRecordCreated }) {
   const [formData, setFormData] = useState({
+    id: '',
+    createdBy: '',
+    createdByEmail: '',
     datechecker: 0,
     date: '',
     object_type: '',
@@ -19,15 +22,20 @@ function CreateData({ onRecordCreated }) {
     index_creation_date: '',
     index_modified_date: '',
   });
-  const { currentUser } = useAuth(); // Get the current authenticated user
+
+  const { currentUser, emailVerified } = useAuth(); // Added emailVerified state
 
   useEffect(() => {
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      id: uuidv4(),
-      index_creation_date: new Date().toISOString(),
-    }));
-  }, []);
+    if (currentUser) {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        id: uuidv4(),
+        createdBy: currentUser.uid,
+        createdByEmail: currentUser.email,
+        index_creation_date: new Date().toISOString(),
+      }));
+    }
+  }, [currentUser]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,39 +45,48 @@ function CreateData({ onRecordCreated }) {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check if the user is authenticated
+    // Ensure the user is authenticated and email is verified
     if (!currentUser) {
       alert('You must be logged in to create a record.');
       return;
     }
 
-    // Use the authenticated user's UID to personalize the database path
-    const recordRef = ref(db, `users/${currentUser.uid}/letters/${formData.id}`);
-    set(recordRef, formData)
-      .then(() => {
-        alert('Record created successfully!');
-        onRecordCreated(formData);
-        setFormData({
-          datechecker: 0,
-          date: '',
-          object_type: '',
-          sender: '',
-          receiver: '',
-          location_object: '',
-          location_original: '',
-          object_url: '',
-          original_url: '',
-          notes: '',
-          index_creation_date: new Date().toISOString(),
-          index_modified_date: '',
-        });
-      })
-      .catch((error) => {
-        alert('Error creating record: ' + error.message);
+    if (!emailVerified) {
+      alert('You must verify your email before creating records.');
+      return;
+    }
+
+    try {
+      const recordRef = ref(db, `letters/${formData.id}`);
+      await set(recordRef, formData); // Firebase write operation
+      alert('Record created successfully!');
+      if (onRecordCreated) onRecordCreated(formData);
+
+      // Reset form data after successful submission
+      setFormData({
+        id: uuidv4(),
+        createdBy: currentUser.uid,
+        createdByEmail: currentUser.email,
+        datechecker: 0,
+        date: '',
+        object_type: '',
+        sender: '',
+        receiver: '',
+        location_object: '',
+        location_original: '',
+        object_url: '',
+        original_url: '',
+        notes: '',
+        index_creation_date: new Date().toISOString(),
+        index_modified_date: '',
       });
+    } catch (error) {
+      console.error('Error creating record:', error.message);
+      alert('Failed to create record. Please check your permissions or try again.');
+    }
   };
 
   return (
