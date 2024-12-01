@@ -1,8 +1,8 @@
-// CreateData.js
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { ref, set } from 'firebase/database';
 import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from './Auth/AuthContext';
 
 function CreateData({ onRecordCreated }) {
   const [formData, setFormData] = useState({
@@ -17,24 +17,37 @@ function CreateData({ onRecordCreated }) {
     original_url: '',
     notes: '',
     index_creation_date: '',
-    index_modified_date: ''
+    index_modified_date: '',
   });
+  const { currentUser } = useAuth(); // Get the current authenticated user
 
   useEffect(() => {
-    setFormData((prevFormData) => ({ ...prevFormData, id: uuidv4(), index_creation_date: new Date().toISOString() }));
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      id: uuidv4(),
+      index_creation_date: new Date().toISOString(),
+    }));
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const recordRef = ref(db, 'letters/' + formData.id);
+
+    // Check if the user is authenticated
+    if (!currentUser) {
+      alert('You must be logged in to create a record.');
+      return;
+    }
+
+    // Use the authenticated user's UID to personalize the database path
+    const recordRef = ref(db, `users/${currentUser.uid}/letters/${formData.id}`);
     set(recordRef, formData)
       .then(() => {
         alert('Record created successfully!');
@@ -51,7 +64,7 @@ function CreateData({ onRecordCreated }) {
           original_url: '',
           notes: '',
           index_creation_date: new Date().toISOString(),
-          index_modified_date: ''
+          index_modified_date: '',
         });
       })
       .catch((error) => {

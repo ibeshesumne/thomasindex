@@ -1,25 +1,37 @@
-// exportRecordsToCSV.js
 import { ref, get } from 'firebase/database';
 import { db } from '../firebase';
+import { useAuth } from './Auth/AuthContext'; // Import AuthContext to get the authenticated user
 import './exportRecordsToCSV.css';
 
 function exportRecordsToCSV() {
-  const recordsRef = ref(db, 'letters/');
-  get(recordsRef).then((snapshot) => {
-    if (snapshot.exists()) {
-      const records = snapshot.val();
-      const recordsArray = Object.keys(records).map((key) => ({ id: key, ...records[key] }));
-      const csvContent = convertToCSV(recordsArray);
-      downloadCSV(csvContent, 'letter_records.csv');
-    } else {
-      alert('No records available to export');
-    }
-  }).catch((error) => {
-    alert('Error fetching records: ' + error.message);
-  });
+  const { currentUser } = useAuth(); // Get the current authenticated user
+
+  // Check if the user is authenticated
+  if (!currentUser) {
+    alert('You must be logged in to export records.');
+    return;
+  }
+
+  // Fetch records specific to the authenticated user
+  const recordsRef = ref(db, `users/${currentUser.uid}/letters`);
+  get(recordsRef)
+    .then((snapshot) => {
+      if (snapshot.exists()) {
+        const records = snapshot.val();
+        const recordsArray = Object.keys(records).map((key) => ({ id: key, ...records[key] }));
+        const csvContent = convertToCSV(recordsArray);
+        downloadCSV(csvContent, 'letter_records.csv');
+      } else {
+        alert('No records available to export');
+      }
+    })
+    .catch((error) => {
+      alert('Error fetching records: ' + error.message);
+    });
 }
 
 function convertToCSV(data) {
+  if (!data.length) return '';
   const headers = Object.keys(data[0]).join(',');
   const rows = data.map((record) => Object.values(record).join(','));
   return [headers, ...rows].join('\n');

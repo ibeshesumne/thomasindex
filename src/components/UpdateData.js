@@ -1,7 +1,7 @@
-// UpdateData.js
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { ref, update } from 'firebase/database';
+import { useAuth } from './Auth/AuthContext'; // Import AuthContext to get the authenticated user
 
 function UpdateData({ selectedRecord, onRecordUpdated }) {
   const [formData, setFormData] = useState({
@@ -16,8 +16,10 @@ function UpdateData({ selectedRecord, onRecordUpdated }) {
     original_url: '',
     notes: '',
     index_creation_date: '',
-    index_modified_date: ''
+    index_modified_date: '',
   });
+
+  const { currentUser } = useAuth(); // Get the current authenticated user
 
   useEffect(() => {
     if (selectedRecord) {
@@ -31,14 +33,28 @@ function UpdateData({ selectedRecord, onRecordUpdated }) {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const recordRef = ref(db, 'letters/' + formData.id);
+
+    // Check if the user is authenticated
+    if (!currentUser) {
+      alert('You must be logged in to update a record.');
+      return;
+    }
+
+    if (!formData.id) {
+      alert('No record selected for update.');
+      return;
+    }
+
+    // Update record under the authenticated user's node
+    const recordRef = ref(db, `users/${currentUser.uid}/letters/${formData.id}`);
     const updatedRecord = { ...formData, index_modified_date: new Date().toISOString() };
+
     update(recordRef, updatedRecord)
       .then(() => {
         alert('Record updated successfully!');
@@ -63,7 +79,7 @@ function UpdateData({ selectedRecord, onRecordUpdated }) {
       original_url: '',
       notes: '',
       index_creation_date: '',
-      index_modified_date: ''
+      index_modified_date: '',
     });
   };
 

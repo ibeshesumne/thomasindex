@@ -1,15 +1,24 @@
-// ReadData.js
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { ref, onValue } from 'firebase/database';
 import { CSVLink } from 'react-csv';
+import { useAuth } from './Auth/AuthContext'; // Import AuthContext to get the authenticated user
 
 function ReadData({ selectedRecord, setSelectedRecord }) {
   const [records, setRecords] = useState([]);
+  const { currentUser } = useAuth(); // Get the current authenticated user
 
   useEffect(() => {
-    const recordsRef = ref(db, 'letters/');
-    onValue(recordsRef, (snapshot) => {
+    // If no user is logged in, do not fetch records
+    if (!currentUser) {
+      alert('You must be logged in to view records.');
+      setRecords([]);
+      return;
+    }
+
+    // Fetch records specific to the logged-in user
+    const recordsRef = ref(db, `users/${currentUser.uid}/letters`);
+    const unsubscribe = onValue(recordsRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
         const recordsList = Object.keys(data).map((key) => ({ id: key, ...data[key] }));
@@ -18,7 +27,9 @@ function ReadData({ selectedRecord, setSelectedRecord }) {
         setRecords([]);
       }
     });
-  }, []);
+
+    return () => unsubscribe(); // Clean up the listener when the component unmounts
+  }, [currentUser]);
 
   const headers = [
     { label: "ID", key: "id" },
@@ -38,16 +49,15 @@ function ReadData({ selectedRecord, setSelectedRecord }) {
 
   const handleExportSingleRecord = (record) => {
     const singleRecordData = [record];
-    const singleRecordHeaders = headers;
-
     const csvData = {
-      filename: `${record.id}_record.csv`,
       data: singleRecordData,
-      headers: singleRecordHeaders
+      headers: headers,
+      filename: `${record.id}_record.csv`,
     };
 
+    const blob = new Blob([new CSVLink(csvData)], { type: 'text/csv' });
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(new Blob([new CSVLink(csvData)], { type: 'text/csv' }));
+    link.href = URL.createObjectURL(blob);
     link.download = csvData.filename;
     link.click();
   };
