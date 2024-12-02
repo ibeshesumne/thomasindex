@@ -7,27 +7,21 @@ import UpdateData from './UpdateData';
 
 function ReadData() {
   const [records, setRecords] = useState([]);
-  const [selectedRecord, setSelectedRecord] = useState(null); // Track the record being reviewed
-  const [isUpdating, setIsUpdating] = useState(false); // Track if we are in update mode
-  const { currentUser, userType } = useAuth(); // Get user info from AuthContext
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { currentUser, userType } = useAuth();
 
   useEffect(() => {
-    if (!currentUser) return; // Prevent fetching if no user is logged in
+    if (!currentUser) return;
 
     const recordsRef = ref(db, 'letters');
-    let recordsQuery;
-
-    if (userType === 'admin') {
-      // Admin fetches all records
-      recordsQuery = recordsRef;
-    } else {
-      // Regular user fetches only their own records
-      recordsQuery = query(recordsRef, orderByChild('createdByEmail'), equalTo(currentUser.email));
-    }
+    const recordsQuery =
+      userType === 'admin'
+        ? recordsRef
+        : query(recordsRef, orderByChild('createdByEmail'), equalTo(currentUser.email));
 
     const unsubscribe = onValue(recordsQuery, (snapshot) => {
       if (!snapshot.exists()) {
-        console.log('No records found.');
         setRecords([]);
         return;
       }
@@ -36,7 +30,6 @@ function ReadData() {
         id,
         ...data,
       }));
-
       setRecords(allRecords);
     });
 
@@ -60,24 +53,18 @@ function ReadData() {
     { label: 'Index Modified Date', key: 'index_modified_date' },
   ];
 
-  const handleRecordClick = (record) => {
-    setSelectedRecord(record);
-  };
-
+  const handleRecordClick = (record) => setSelectedRecord(record);
   const handleBackToRecords = () => {
     setSelectedRecord(null);
     setIsUpdating(false);
   };
-
-  const handleUpdateRecord = () => {
-    setIsUpdating(true);
-  };
+  const handleUpdateRecord = () => setIsUpdating(true);
 
   if (isUpdating && selectedRecord) {
     return (
       <UpdateData
         selectedRecord={selectedRecord}
-        onRecordUpdated={handleBackToRecords} // Return to records list after update
+        onRecordUpdated={handleBackToRecords}
       />
     );
   }
@@ -88,39 +75,17 @@ function ReadData() {
         <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-8">
           <h2 className="text-2xl font-bold text-center mb-6">Record Details</h2>
           <div className="space-y-4">
-            <div>
-              <strong>ID:</strong> {selectedRecord.id}
-            </div>
-            <div>
-              <strong>Created By:</strong> {selectedRecord.createdByEmail}
-            </div>
-            <div>
-              <strong>Date:</strong> {selectedRecord.date}
-            </div>
-            <div>
-              <strong>Object Type:</strong> {selectedRecord.object_type}
-            </div>
-            <div>
-              <strong>Sender:</strong> {selectedRecord.sender}
-            </div>
-            <div>
-              <strong>Receiver:</strong> {selectedRecord.receiver}
-            </div>
-            <div>
-              <strong>Location of Object:</strong> {selectedRecord.location_object}
-            </div>
-            <div>
-              <strong>Location of Original:</strong> {selectedRecord.location_original}
-            </div>
-            <div>
-              <strong>Object URL:</strong> {selectedRecord.object_url}
-            </div>
-            <div>
-              <strong>Original URL:</strong> {selectedRecord.original_url}
-            </div>
-            <div>
-              <strong>Notes:</strong> {selectedRecord.notes}
-            </div>
+            <div><strong>ID:</strong> {selectedRecord.id}</div>
+            <div><strong>Created By:</strong> {selectedRecord.createdByEmail}</div>
+            <div><strong>Date:</strong> {selectedRecord.date}</div>
+            <div><strong>Object Type:</strong> {selectedRecord.object_type}</div>
+            <div><strong>Sender:</strong> {selectedRecord.sender}</div>
+            <div><strong>Receiver:</strong> {selectedRecord.receiver}</div>
+            <div><strong>Location of Object:</strong> {selectedRecord.location_object}</div>
+            <div><strong>Location of Original:</strong> {selectedRecord.location_original}</div>
+            <div><strong>Object URL:</strong> {selectedRecord.object_url}</div>
+            <div><strong>Original URL:</strong> {selectedRecord.original_url}</div>
+            <div><strong>Notes:</strong> {selectedRecord.notes}</div>
           </div>
           <div className="flex justify-between mt-6">
             <button
@@ -145,6 +110,10 @@ function ReadData() {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-3xl bg-white shadow-md rounded-lg p-8">
         <h3 className="text-2xl font-bold mb-4">Your Records</h3>
+        <p className="text-gray-600 mb-4">
+          You have <strong>{records.length}</strong> records. Use the buttons below to review or update them. 
+          You can also export the data as a CSV file.
+        </p>
         <CSVLink
           data={records}
           headers={headers}
