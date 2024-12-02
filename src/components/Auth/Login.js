@@ -16,31 +16,67 @@ const Login = () => {
       setError('');
       navigate('/create'); // Navigate to the protected route
     } catch (err) {
-      setError('Invalid credentials');
+      setError('Invalid credentials. Please try again.');
     }
   };
 
   return (
-    <div>
+    <div style={{ maxWidth: '400px', margin: 'auto', padding: '20px' }}>
       <h2>Login</h2>
+      <p>
+        Please login with your email and password. If you don't have an account,{' '}
+        <a href="/register">register here</a>.
+      </p>
       <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Login</button>
+        <div style={{ marginBottom: '15px' }}>
+          <label>Email:</label>
+          <input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{
+              width: '100%',
+              padding: '10px',
+              margin: '5px 0',
+              border: '1px solid #ccc',
+              borderRadius: '5px',
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: '15px' }}>
+          <label>Password:</label>
+          <input
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{
+              width: '100%',
+              padding: '10px',
+              margin: '5px 0',
+              border: '1px solid #ccc',
+              borderRadius: '5px',
+            }}
+          />
+        </div>
+        <button
+          type="submit"
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#007BFF',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+          }}
+        >
+          Login
+        </button>
       </form>
-      {error && <p>{error}</p>}
+      {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
     </div>
   );
 };

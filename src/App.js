@@ -10,6 +10,7 @@ import Login from './components/Auth/Login'; // Import Login Component
 import Register from './components/Auth/Register'; // Import Register Component
 import Logout from './components/Auth/Logout'; // Import Logout Component
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
+import Home from './components/Home'; // Import Home Component
 
 function App() {
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -19,6 +20,9 @@ function App() {
       <Header />
       <main>
         <Routes>
+          {/* Landing page */}
+          <Route path="/" element={<Home />} />
+
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
