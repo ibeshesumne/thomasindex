@@ -37,9 +37,6 @@ const Header = () => {
                 <Link to="/read">View Records</Link>
               </li>
               <li style={listItemStyle}>
-                <Link to="/update">Update Record</Link>
-              </li>
-              <li style={listItemStyle}>
                 <Link to="/delete">Delete Record</Link>
               </li>
               <li style={listItemStyle}>
