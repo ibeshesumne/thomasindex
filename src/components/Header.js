@@ -19,27 +19,34 @@ const Header = () => {
       </div>
       <nav>
         <ul style={navStyle}>
-          <li style={listItemStyle}>
-            <Link to="/login">Login</Link>
-          </li>
-          <li style={listItemStyle}>
-            <Link to="/register">Register</Link>
-          </li>
-          <li style={listItemStyle}>
-            <Link to="/create">Create Record</Link>
-          </li>
-          <li style={listItemStyle}>
-            <Link to="/read">View Records</Link>
-          </li>
-          <li style={listItemStyle}>
-            <Link to="/update">Update Record</Link>
-          </li>
-          <li style={listItemStyle}>
-            <Link to="/delete">Delete Record</Link>
-          </li>
-          <li style={listItemStyle}>
-            <Link to="/logout">Logout</Link>
-          </li>
+          {!currentUser ? (
+            <>
+              <li style={listItemStyle}>
+                <Link to="/login">Login</Link>
+              </li>
+              <li style={listItemStyle}>
+                <Link to="/register">Register</Link>
+              </li>
+            </>
+          ) : (
+            <>
+              <li style={listItemStyle}>
+                <Link to="/create">Create Record</Link>
+              </li>
+              <li style={listItemStyle}>
+                <Link to="/read">View Records</Link>
+              </li>
+              <li style={listItemStyle}>
+                <Link to="/update">Update Record</Link>
+              </li>
+              <li style={listItemStyle}>
+                <Link to="/delete">Delete Record</Link>
+              </li>
+              <li style={listItemStyle}>
+                <Link to="/logout">Logout</Link>
+              </li>
+            </>
+          )}
         </ul>
       </nav>
     </header>
