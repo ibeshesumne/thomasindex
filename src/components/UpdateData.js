@@ -1,29 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { ref, update } from 'firebase/database';
-import { useAuth } from './Auth/AuthContext';
+import React, { useState, useEffect } from "react";
+import { db } from "../firebase";
+import { ref, update } from "firebase/database";
+import { useAuth } from "./Auth/AuthContext";
 
 function UpdateData({ selectedRecord, onRecordUpdated, onCancel }) {
   const [formData, setFormData] = useState({
-    id: '',
-    createdBy: '',
-    createdByEmail: '',
+    id: "",
+    createdBy: "",
+    createdByEmail: "",
     datechecker: 0,
-    date: '',
-    object_type: '',
-    sender: '',
-    receiver: '',
-    location_object: '',
-    location_original: '',
-    object_url: '',
-    original_url: '',
-    notes: '',
-    index_creation_date: '',
-    index_modified_date: '',
+    date: "",
+    object_type: "",
+    sender: "",
+    receiver: "",
+    location_object: "",
+    location_original: "",
+    object_url: "",
+    original_url: "",
+    notes: "",
+    index_creation_date: "",
+    index_modified_date: "",
   });
 
   const { currentUser, emailVerified } = useAuth();
-  const [isDropdownVisible, setDropdownVisible] = useState(false);
 
   useEffect(() => {
     if (selectedRecord) {
@@ -33,27 +32,31 @@ function UpdateData({ selectedRecord, onRecordUpdated, onCancel }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: value,
-    }));
+    setFormData((prevFormData) => {
+      const updatedData = { ...prevFormData, [name]: value };
+      // Automatically set `datechecker` based on the 'date' field
+      if (name === "date") {
+        updatedData.datechecker = value ? 1 : 0;
+      }
+      return updatedData;
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!currentUser) {
-      alert('You must be logged in to update a record.');
+      alert("You must be logged in to update a record.");
       return;
     }
 
     if (!emailVerified) {
-      alert('You must verify your email before updating records.');
+      alert("You must verify your email before updating records.");
       return;
     }
 
     if (!formData.id) {
-      alert('No record selected for update.');
+      alert("No record selected for update.");
       return;
     }
 
@@ -65,16 +68,12 @@ function UpdateData({ selectedRecord, onRecordUpdated, onCancel }) {
 
     try {
       await update(recordRef, updatedRecord);
-      alert('Record updated successfully!');
-      if (onRecordUpdated) onRecordUpdated(updatedRecord); // Callback to notify parent of update
+      alert("Record updated successfully!");
+      if (onRecordUpdated) onRecordUpdated(updatedRecord); // Notify parent of update
     } catch (error) {
-      console.error('Error updating record:', error.message);
-      alert('Failed to update record. Please try again.');
+      console.error("Error updating record:", error.message);
+      alert("Failed to update record. Please try again.");
     }
-  };
-
-  const toggleDropdown = () => {
-    setDropdownVisible(!isDropdownVisible);
   };
 
   return (
@@ -82,18 +81,6 @@ function UpdateData({ selectedRecord, onRecordUpdated, onCancel }) {
       <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-8">
         <h2 className="text-2xl font-bold text-center mb-6">Update Record</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              name="datechecker"
-              checked={formData.datechecker === 1}
-              onChange={(e) =>
-                handleChange({ target: { name: 'datechecker', value: e.target.checked ? 1 : 0 } })
-              }
-              className="form-checkbox h-5 w-5"
-            />
-            <label className="ml-2 text-sm text-gray-700">Date Checker</label>
-          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Date</label>
             <input
@@ -106,51 +93,39 @@ function UpdateData({ selectedRecord, onRecordUpdated, onCancel }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Object Type</label>
-            <div
-              className="block w-full mt-1 p-2 border rounded-md relative"
-              onClick={toggleDropdown}
+            <select
+              name="object_type"
+              value={formData.object_type}
+              onChange={handleChange}
+              className="block w-full mt-1 p-2 border rounded-md"
             >
-              {!isDropdownVisible ? (
-                <span>{formData.object_type || 'Select Object Type'}</span>
-              ) : (
-                <select
-                  name="object_type"
-                  value={formData.object_type}
-                  onChange={(e) => {
-                    handleChange(e);
-                    setDropdownVisible(false); // Close dropdown after selection
-                  }}
-                  className="absolute top-0 left-0 w-full h-full bg-white border-none"
-                >
-                  <option value="">Select Object Type</option>
-                  <option value="Original Letter with Envelope">Original Letter with Envelope</option>
-                  <option value="Original Letter without Envelope">Original Letter without Envelope</option>
-                  <option value="Original Letter Photocopy">Original Letter Photocopy</option>
-                  <option value="Original Letter Scanned Image">Original Letter Scanned Image</option>
-                  <option value="Original Letter Typed Transcript">Original Letter Typed Transcript</option>
-                  <option value="Original Letter Typed Transcript Photocopy">
-                    Original Letter Typed Transcript Photocopy
-                  </option>
-                  <option value="Original Post Card">Original Post Card</option>
-                  <option value="Original Post Card Photocopy">Original Post Card Photocopy</option>
-                  <option value="Original Post Card Typed Transcript">Original Post Card Typed Transcript</option>
-                  <option value="Other Material">Other Material</option>
-                </select>
-              )}
-            </div>
+              <option value="">Select Object Type</option>
+              <option value="Original Letter with Envelope">Original Letter with Envelope</option>
+              <option value="Original Letter without Envelope">Original Letter without Envelope</option>
+              <option value="Original Letter Photocopy">Original Letter Photocopy</option>
+              <option value="Original Letter Scanned Image">Original Letter Scanned Image</option>
+              <option value="Original Letter Typed Transcript">Original Letter Typed Transcript</option>
+              <option value="Original Letter Typed Transcript Photocopy">
+                Original Letter Typed Transcript Photocopy
+              </option>
+              <option value="Original Post Card">Original Post Card</option>
+              <option value="Original Post Card Photocopy">Original Post Card Photocopy</option>
+              <option value="Original Post Card Typed Transcript">Original Post Card Typed Transcript</option>
+              <option value="Other Material">Other Material</option>
+            </select>
           </div>
-          {['sender', 'receiver', 'location_object', 'location_original', 'object_url', 'original_url'].map(
+          {["sender", "receiver", "location_object", "location_original", "object_url", "original_url"].map(
             (field) => (
               <div key={field}>
                 <label className="block text-sm font-medium text-gray-700">
-                  {field.replace('_', ' ').toUpperCase()}
+                  {field.replace("_", " ").toUpperCase()}
                 </label>
                 <input
-                  type={field.includes('url') ? 'url' : 'text'}
+                  type={field.includes("url") ? "url" : "text"}
                   name={field}
                   value={formData[field]}
                   onChange={handleChange}
-                  placeholder={`Enter ${field.replace('_', ' ')}`}
+                  placeholder={`Enter ${field.replace("_", " ")}`}
                   className="block w-full mt-1 p-2 border rounded-md"
                 />
               </div>
