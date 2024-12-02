@@ -12,3 +12,49 @@ body {
 .dark body {
   @apply bg-zenDark text-zenDarkText;
 }
+
+/* Home Component Styles */
+.home-container {
+  text-align: center;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 80vh; /* Positioning the title above the midpoint */
+}
+
+.home-title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.home-description {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  max-width: 800px;
+  line-height: 1.6;
+  text-align: justify;
+}
+
+.home-content p {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.home-links {
+  display: flex;
+  gap: 20px;
+}
+
+.home-link {
+  color: #007BFF;
+  text-decoration: none;
+  font-size: 1.2rem;
+}
+
+.home-link:hover {
+  text-decoration: underline;
+}
+
