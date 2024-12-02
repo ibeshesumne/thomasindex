@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Import Link
 import { auth } from '../../firebase';
 
 const Login = () => {
@@ -25,7 +25,7 @@ const Login = () => {
       <h2>Login</h2>
       <p>
         Please login with your email and password. If you don't have an account,{' '}
-        <a href="/register">register here</a>.
+        <Link to="/register">register here</Link>.
       </p>
       <form onSubmit={handleLogin}>
         <div style={{ marginBottom: '15px' }}>
