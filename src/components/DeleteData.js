@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { db } from '../firebase';
 import { ref, remove } from 'firebase/database';
-import { useAuth } from './Auth/AuthContext'; // Use the AuthContext to check authentication and email verification
+import { useAuth } from './Auth/AuthContext';
 
 function DeleteData() {
   const [recordId, setRecordId] = useState('');
-  const { currentUser, emailVerified } = useAuth(); // Get the current authenticated user and email verification status
+  const { currentUser, emailVerified } = useAuth();
 
   const handleIdChange = (e) => {
     setRecordId(e.target.value);
@@ -14,13 +14,11 @@ function DeleteData() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Ensure the user is authenticated
     if (!currentUser) {
       alert('You must be logged in to delete a record.');
       return;
     }
 
-    // Ensure the user has verified their email
     if (!emailVerified) {
       alert('You must verify your email before deleting records.');
       return;
@@ -31,13 +29,12 @@ function DeleteData() {
       return;
     }
 
-    // Centralized reference in the "letters" node
     const recordRef = ref(db, `letters/${recordId}`);
 
     try {
       await remove(recordRef);
       alert('Record deleted successfully!');
-      setRecordId(''); // Reset input field after deletion
+      setRecordId('');
     } catch (error) {
       console.error('Error deleting record:', error.message);
       alert('Error deleting record. Please try again.');
@@ -45,23 +42,34 @@ function DeleteData() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-      <input
-        type="text"
-        name="recordId"
-        value={recordId}
-        onChange={handleIdChange}
-        placeholder="Record ID"
-        required
-        className="mb-4 p-2 border border-gray-300 rounded w-full"
-      />
-      <button
-        type="submit"
-        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-4"
-      >
-        Delete Record
-      </button>
-    </form>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-8">
+        <h2 className="text-2xl font-bold text-center mb-6">Delete Record</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="recordId" className="block text-sm font-medium text-gray-700">
+              Record ID
+            </label>
+            <input
+              type="text"
+              id="recordId"
+              name="recordId"
+              value={recordId}
+              onChange={handleIdChange}
+              placeholder="Enter Record ID"
+              required
+              className="block w-full mt-1 p-2 border rounded-md"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md"
+          >
+            Delete Record
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
 

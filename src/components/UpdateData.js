@@ -3,7 +3,7 @@ import { db } from '../firebase';
 import { ref, update } from 'firebase/database';
 import { useAuth } from './Auth/AuthContext';
 
-function UpdateData({ selectedRecord, onRecordUpdated }) {
+function UpdateData({ selectedRecord, onRecordUpdated, onCancel }) {
   const [formData, setFormData] = useState({
     id: '',
     createdBy: '',
@@ -22,13 +22,12 @@ function UpdateData({ selectedRecord, onRecordUpdated }) {
     index_modified_date: '',
   });
 
-  const { currentUser, emailVerified } = useAuth(); // Include email verification status
+  const { currentUser, emailVerified } = useAuth();
+  const [isDropdownVisible, setDropdownVisible] = useState(false);
 
   useEffect(() => {
     if (selectedRecord) {
-      setFormData(selectedRecord);
-    } else {
-      clearForm();
+      setFormData(selectedRecord); // Populate the form with selectedRecord data
     }
   }, [selectedRecord]);
 
@@ -67,131 +66,124 @@ function UpdateData({ selectedRecord, onRecordUpdated }) {
     try {
       await update(recordRef, updatedRecord);
       alert('Record updated successfully!');
-      if (onRecordUpdated) onRecordUpdated(updatedRecord);
-      clearForm();
+      if (onRecordUpdated) onRecordUpdated(updatedRecord); // Callback to notify parent of update
     } catch (error) {
       console.error('Error updating record:', error.message);
       alert('Failed to update record. Please try again.');
     }
   };
 
-  const clearForm = () => {
-    setFormData({
-      id: '',
-      createdBy: '',
-      createdByEmail: '',
-      datechecker: 0,
-      date: '',
-      object_type: '',
-      sender: '',
-      receiver: '',
-      location_object: '',
-      location_original: '',
-      object_url: '',
-      original_url: '',
-      notes: '',
-      index_creation_date: '',
-      index_modified_date: '',
-    });
+  const toggleDropdown = () => {
+    setDropdownVisible(!isDropdownVisible);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-      <input
-        type="checkbox"
-        name="datechecker"
-        checked={formData.datechecker === 1}
-        onChange={(e) => handleChange({ target: { name: 'datechecker', value: e.target.checked ? 1 : 0 } })}
-        className="form-checkbox h-5 w-5 mb-4"
-      />
-      <input
-        type="date"
-        name="date"
-        value={formData.date}
-        onChange={handleChange}
-        className="mb-4 p-2 border border-gray-300 rounded w-full"
-      />
-      <select
-        name="object_type"
-        value={formData.object_type}
-        onChange={handleChange}
-        required
-        className="mb-4 p-2 border border-gray-300 rounded w-full"
-      >
-        <option value="">Select Object Type</option>
-        <option value="original_letter_with_envelope">Original Letter with Envelope</option>
-        <option value="original_letter_without_envelope">Original Letter without Envelope</option>
-        <option value="original_letter_photocopy">Original Letter Photocopy</option>
-        <option value="original_letter_scanned_image">Original Letter Scanned Image</option>
-        <option value="original_letter_typed_transcript">Original Letter Typed Transcript</option>
-        <option value="original_letter_typed_transcript_photocopy">Original Letter Typed Transcript Photocopy</option>
-        <option value="original_post_card">Original Post Card</option>
-        <option value="original_post_card_photocopy">Original Post Card Photocopy</option>
-        <option value="original_post_card_typed_transcript">Original Post Card Typed Transcript</option>
-        <option value="other_material">Other Material</option>
-      </select>
-      <input
-        type="text"
-        name="sender"
-        value={formData.sender}
-        onChange={handleChange}
-        placeholder="Sender"
-        className="mb-4 p-2 border border-gray-300 rounded w-full"
-      />
-      <input
-        type="text"
-        name="receiver"
-        value={formData.receiver}
-        onChange={handleChange}
-        placeholder="Receiver"
-        className="mb-4 p-2 border border-gray-300 rounded w-full"
-      />
-      <input
-        type="text"
-        name="location_object"
-        value={formData.location_object}
-        onChange={handleChange}
-        placeholder="Location of Object"
-        className="mb-4 p-2 border border-gray-300 rounded w-full"
-      />
-      <input
-        type="text"
-        name="location_original"
-        value={formData.location_original}
-        onChange={handleChange}
-        placeholder="Location of Original (if applicable)"
-        className="mb-4 p-2 border border-gray-300 rounded w-full"
-      />
-      <input
-        type="url"
-        name="object_url"
-        value={formData.object_url}
-        onChange={handleChange}
-        placeholder="URL to Object"
-        className="mb-4 p-2 border border-gray-300 rounded w-full"
-      />
-      <input
-        type="url"
-        name="original_url"
-        value={formData.original_url}
-        onChange={handleChange}
-        placeholder="URL to Original (if applicable)"
-        className="mb-4 p-2 border border-gray-300 rounded w-full"
-      />
-      <textarea
-        name="notes"
-        value={formData.notes}
-        onChange={handleChange}
-        placeholder="Notes"
-        className="mb-4 p-2 border border-gray-300 rounded w-full"
-      ></textarea>
-      <button
-        type="submit"
-        className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded mt-4"
-      >
-        Update Record
-      </button>
-    </form>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-8">
+        <h2 className="text-2xl font-bold text-center mb-6">Update Record</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="datechecker"
+              checked={formData.datechecker === 1}
+              onChange={(e) =>
+                handleChange({ target: { name: 'datechecker', value: e.target.checked ? 1 : 0 } })
+              }
+              className="form-checkbox h-5 w-5"
+            />
+            <label className="ml-2 text-sm text-gray-700">Date Checker</label>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Date</label>
+            <input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              className="block w-full mt-1 p-2 border rounded-md"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Object Type</label>
+            <div
+              className="block w-full mt-1 p-2 border rounded-md relative"
+              onClick={toggleDropdown}
+            >
+              {!isDropdownVisible ? (
+                <span>{formData.object_type || 'Select Object Type'}</span>
+              ) : (
+                <select
+                  name="object_type"
+                  value={formData.object_type}
+                  onChange={(e) => {
+                    handleChange(e);
+                    setDropdownVisible(false); // Close dropdown after selection
+                  }}
+                  className="absolute top-0 left-0 w-full h-full bg-white border-none"
+                >
+                  <option value="">Select Object Type</option>
+                  <option value="Original Letter with Envelope">Original Letter with Envelope</option>
+                  <option value="Original Letter without Envelope">Original Letter without Envelope</option>
+                  <option value="Original Letter Photocopy">Original Letter Photocopy</option>
+                  <option value="Original Letter Scanned Image">Original Letter Scanned Image</option>
+                  <option value="Original Letter Typed Transcript">Original Letter Typed Transcript</option>
+                  <option value="Original Letter Typed Transcript Photocopy">
+                    Original Letter Typed Transcript Photocopy
+                  </option>
+                  <option value="Original Post Card">Original Post Card</option>
+                  <option value="Original Post Card Photocopy">Original Post Card Photocopy</option>
+                  <option value="Original Post Card Typed Transcript">Original Post Card Typed Transcript</option>
+                  <option value="Other Material">Other Material</option>
+                </select>
+              )}
+            </div>
+          </div>
+          {['sender', 'receiver', 'location_object', 'location_original', 'object_url', 'original_url'].map(
+            (field) => (
+              <div key={field}>
+                <label className="block text-sm font-medium text-gray-700">
+                  {field.replace('_', ' ').toUpperCase()}
+                </label>
+                <input
+                  type={field.includes('url') ? 'url' : 'text'}
+                  name={field}
+                  value={formData[field]}
+                  onChange={handleChange}
+                  placeholder={`Enter ${field.replace('_', ' ')}`}
+                  className="block w-full mt-1 p-2 border rounded-md"
+                />
+              </div>
+            )
+          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Notes</label>
+            <textarea
+              name="notes"
+              value={formData.notes}
+              onChange={handleChange}
+              placeholder="Enter notes"
+              className="block w-full mt-1 p-2 border rounded-md"
+            ></textarea>
+          </div>
+          <div className="flex justify-between mt-4">
+            <button
+              type="button"
+              onClick={onCancel} // Trigger cancel callback
+              className="w-1/2 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md mr-2"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="w-1/2 bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md"
+            >
+              Update Record
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
