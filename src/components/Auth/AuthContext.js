@@ -57,6 +57,7 @@ export const AuthProvider = ({ children }) => {
     currentUser,
     emailVerified,
     userType,
+    isLoggedIn: !!currentUser, // Added isLoggedIn property
   };
 
   return (
