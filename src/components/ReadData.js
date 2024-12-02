@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, query, orderByChild, equalTo } from 'firebase/database';
+import { useAuth } from './Auth/AuthContext'; // Ensure correct path to AuthContext
 import { CSVLink } from 'react-csv';
 import UpdateData from './UpdateData';
 
@@ -8,11 +9,23 @@ function ReadData() {
   const [records, setRecords] = useState([]);
   const [selectedRecord, setSelectedRecord] = useState(null); // Track the record being reviewed
   const [isUpdating, setIsUpdating] = useState(false); // Track if we are in update mode
+  const { currentUser, userType } = useAuth(); // Get user info from AuthContext
 
   useEffect(() => {
-    const recordsRef = ref(db, 'letters');
+    if (!currentUser) return; // Prevent fetching if no user is logged in
 
-    const unsubscribe = onValue(recordsRef, (snapshot) => {
+    const recordsRef = ref(db, 'letters');
+    let recordsQuery;
+
+    if (userType === 'admin') {
+      // Admin fetches all records
+      recordsQuery = recordsRef;
+    } else {
+      // Regular user fetches only their own records
+      recordsQuery = query(recordsRef, orderByChild('createdByEmail'), equalTo(currentUser.email));
+    }
+
+    const unsubscribe = onValue(recordsQuery, (snapshot) => {
       if (!snapshot.exists()) {
         console.log('No records found.');
         setRecords([]);
@@ -28,7 +41,7 @@ function ReadData() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [currentUser, userType]);
 
   const headers = [
     { label: 'ID', key: 'id' },
@@ -61,7 +74,6 @@ function ReadData() {
   };
 
   if (isUpdating && selectedRecord) {
-    // Render the Update form
     return (
       <UpdateData
         selectedRecord={selectedRecord}
@@ -71,7 +83,6 @@ function ReadData() {
   }
 
   if (selectedRecord) {
-    // Render the detailed card for the selected record
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <div className="w-full max-w-lg bg-white shadow-md rounded-lg p-8">
@@ -130,7 +141,6 @@ function ReadData() {
     );
   }
 
-  // Render the list of records
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-3xl bg-white shadow-md rounded-lg p-8">
@@ -141,7 +151,7 @@ function ReadData() {
           filename="letters_records.csv"
           className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mb-4 inline-block"
         >
-          Export All Records to CSV
+          Export Records to CSV
         </CSVLink>
         {records.length === 0 ? (
           <p className="text-gray-500">No records available</p>
